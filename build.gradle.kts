@@ -1,7 +1,17 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-group = "net.darkmeow"
-version = "1.0"
+val baseGroup: String by project
+val baseVersion: String by project
+
+val kotlinxCoroutineVersion: String by project
+
+val gsonVersion: String by project
+val fastutilVersion: String by project
+val ow2asmVersion: String by project
+
+group = baseGroup
+version = baseVersion
 
 plugins {
     kotlin("jvm")
@@ -25,14 +35,13 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutineVersion")
 
-    implementation("com.google.code.gson:gson:2.10")
-    implementation("it.unimi.dsi:fastutil:8.5.12")
+    implementation("com.google.code.gson:gson:$gsonVersion")
+    implementation("it.unimi.dsi:fastutil:$fastutilVersion")
 
-    implementation("org.ow2.asm:asm-commons:9.6")
-    implementation("org.ow2.asm:asm-tree:9.6")
+    implementation("org.ow2.asm:asm-commons:$ow2asmVersion")
+    implementation("org.ow2.asm:asm-tree:$ow2asmVersion")
 }
 
 java {
@@ -42,42 +51,23 @@ java {
     withSourcesJar()
 }
 
-kotlin {
-    val jvmArgs = mutableSetOf<String>()
-    (rootProject.findProperty("kotlin.daemon.jvm.options") as? String)
-        ?.split("\\s+".toRegex())?.toCollection(jvmArgs)
-    System.getProperty("gradle.kotlin.daemon.jvm.options")
-        ?.split("\\s+".toRegex())?.toCollection(jvmArgs)
-    kotlinDaemonJvmArgs = jvmArgs.toList()
-}
-
 tasks {
     withType<JavaCompile> {
         options.encoding = "UTF-8"
     }
-
     withType<KotlinCompile> {
-        kotlinOptions {
-            jvmTarget = "17"
-            freeCompilerArgs = listOf(
-                "-opt-in=kotlin.RequiresOptIn",
-                "-opt-in=kotlin.contracts.ExperimentalContracts",
-                "-Xlambdas=indy",
-                "-Xjvm-default=all",
-                "-Xbackend-threads=0"
-            )
-        }
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
     }
 }
-
 
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            from(components["java"])
-            groupId = "net.darkmeow"
             artifactId = "fast-remapper"
-            version = "1.0"
+            groupId = baseGroup
+            version = baseVersion
+
+            from(components["java"])
         }
     }
     repositories {
